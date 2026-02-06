@@ -45,8 +45,8 @@ RECIPIENTS = [
 # The model ID may be updated when Google releases the stable version.
 # Check: https://ai.google.dev/gemini-api/docs/models
 # ---------------------------------------------------------------------------
-#GEMINI_MODEL = "gemini-3-pro-preview"
-GEMINI_MODEL = "gemini-3-flash-preview"
+GEMINI_MODEL = "gemini-3-pro-preview"
+#GEMINI_MODEL = "gemini-3-flash-preview"
 
 SYSTEM_PROMPT = """Você é um Especialista Sênior em Fundraising e Desenvolvimento Institucional para organizações de mídia e jornalismo investigativo na América Latina.
 
