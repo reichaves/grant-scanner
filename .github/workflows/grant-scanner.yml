@@ -1,0 +1,53 @@
+# .github/workflows/grant-scanner.yml
+# ============================================================================
+# Automated Grant Scanner for Abraji
+# Runs Monday-Friday at 17:00 BRT (20:00 UTC) and sends email report
+# ============================================================================
+
+name: "📡 Grant Scanner — Abraji"
+
+on:
+  schedule:
+    # 17:00 BRT = 20:00 UTC (during standard time, BRT = UTC-3)
+    # Cron does not natively support business days, so we run Mon-Fri only
+    # using the day-of-week field: 1-5 = Monday through Friday
+    - cron: "0 20 * * 1-5"
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+# Prevent concurrent runs
+concurrency:
+  group: grant-scanner
+  cancel-in-progress: true
+
+jobs:
+  scan-grants:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15  # Safety timeout
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "🐍 Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: "📦 Install dependencies"
+        run: pip install "google-genai>=1.0.0"
+
+      - name: "🔍 Run Grant Scanner"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python grant_scanner.py
+
+      - name: "📎 Upload report as artifact"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "grant-report-${{ github.run_number }}"
+          path: grant_report.md
+          retention-days: 90
