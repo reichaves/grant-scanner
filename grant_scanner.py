@@ -5,7 +5,7 @@ Grant Scanner for Investigative Journalism Organizations in Latin America.
 Automated daily search for funding opportunities using Google Gemini 3 Pro
 with Google Search Grounding. Designed for GitHub Actions CI/CD.
 
-Author: Reinaldo Chaves (https://github.com/reichaves)
+Author: Reinaldo Chaves (https://github.com/reichaves/grant-scanner)
 License: MIT
 """
 
@@ -40,19 +40,23 @@ RECIPIENTS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Model: Gemini 3 Pro Preview
+# Model: Gemini 3 Pro Preview or gemini-3-flash-preview
 # Google's most advanced reasoning model with native Google Search Grounding.
 # The model ID may be updated when Google releases the stable version.
 # Check: https://ai.google.dev/gemini-api/docs/models
 # ---------------------------------------------------------------------------
-GEMINI_MODEL = "gemini-3-pro-preview"
+#GEMINI_MODEL = "gemini-3-pro-preview"
+GEMINI_MODEL = "gemini-3-flash-preview"
 
 SYSTEM_PROMPT = """Você é um Especialista Sênior em Fundraising e Desenvolvimento Institucional para organizações de mídia e jornalismo investigativo na América Latina.
 
 Sua tarefa é realizar uma varredura profunda na web para identificar oportunidades de financiamento abertas ou previstas para o ciclo 2025-2026.
 
 PARÂMETROS DE BUSCA:
-1. Priorize oportunidades de fundações globais (ex: Open Society, Luminate, Ford Foundation, MacArthur, Knight Foundation, Bloomberg), agências de cooperação internacional (ex: USAID, Europaid, Norad, GIZ, SIDA, AFD) e organizações de nicho (ex: Pulitzer Center, GIJN, Google News Initiative, Internews, Free Press Unlimited, DW Akademie, Reporters Without Borders, National Endowment for Democracy, IJ4EU).
+1. Priorize oportunidades de fundações globais (ex: Open Society, Luminate, Ford Foundation, MacArthur, Knight Foundation, Bloomberg), 
+agências de cooperação internacional (ex: USAID, Europaid, Norad, GIZ, SIDA, AFD), 
+organizações de nicho (ex: Pulitzer Center, GIJN, Google News Initiative, Internews, Free Press Unlimited, DW Akademie, Reporters Without Borders, National Endowment for Democracy, IJ4EU) e 
+e outras fundações e organizações brasileiras ou internacionais (Betty & Jacob Lafer, Fundação Tide Setubal, Instituto Serrapilheira, Fundação Lemann, Embaixada e Consulado dos EUA, Embaixada e Consulado do Canadá, Fundação Itaú.
 2. Busque por termos-chave em inglês, espanhol e português:
    - "Call for proposals journalism 2025 2026"
    - "Investigative reporting grants Latin America"
@@ -64,6 +68,21 @@ PARÂMETROS DE BUSCA:
    - "Press freedom grants"
    - "AI journalism grants"
    - "Grants for newsrooms Global South"
+   - "Transparency and accountability grants Latin America"
+   - "Anti-corruption journalism funding"
+   - "Digital rights and democracy grants"
+   - "Human rights defenders funding Brazil"
+   - "Fact-checking and disinformation grants"
+   - "Open data innovation funds"
+   - "Collaborative journalism projects funding"
+   - "Safety of journalists grants"
+   - "Climate change media partnership"
+   - "Civic tech for media development"
+   - "Financiamento para defesa da liberdade de imprensa"
+   - "Apoio ao jornalismo local e independente"
+   - "Gender equity in media grants"
+   - "Public interest technology funding"
+   - "Edital projetos de transparência pública"
 3. IGNORE oportunidades exclusivas para cidadãos dos EUA ou UE. Foque naquelas abertas a brasileiros, latino-americanos ou candidatos globais.
 
 FILTRAGEM RIGOROSA:
@@ -84,7 +103,7 @@ Para cada oportunidade, forneça:
 - **Link Direto:** URL para a página oficial de aplicação (NÃO a home page genérica)
 
 IMPORTANTE:
-- Encontre no MÍNIMO 10 oportunidades, idealmente 15-20.
+- Encontre no MÍNIMO 10 oportunidades, idealmente 15-20 ou mais.
 - NÃO invente informações. Se não tiver certeza de um dado, indique claramente.
 - Inclua a data de hoje no cabeçalho do relatório.
 
@@ -134,7 +153,7 @@ def run_grant_search(api_key: str) -> str:
     config = types.GenerateContentConfig(
         system_instruction=SYSTEM_PROMPT,
         tools=[google_search_tool],
-        temperature=0.3,           # Lower = more factual
+        temperature=0.1,           # Lower = more factual
         max_output_tokens=16000,   # Allow long, detailed output
         thinking_config=types.ThinkingConfig(
             thinking_level="HIGH"  # Enable deep reasoning for thorough search
@@ -286,7 +305,7 @@ def build_email_html(report: str) -> str:
     <em>Este relatório usa IA e busca web automatizada.
     Sempre verifique os links e prazos nos sites oficiais.</em><br><br>
     Script criado por Reinaldo Chaves
-    (<a href="https://github.com/reichaves" style="color:#2980b9;">https://github.com/reichaves</a>)
+    (<a href="https://github.com/reichaves/grant-scanner" style="color:#2980b9;">https://github.com/reichaves</a>)
   </div>
 
 </body>
