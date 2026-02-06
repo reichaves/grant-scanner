@@ -32,19 +32,19 @@ logger = logging.getLogger(__name__)
 BRT = timezone(timedelta(hours=-3))
 
 SENDER_EMAIL = "reichaves@gmail.com"
-"""
+
 RECIPIENTS = [
     "reinaldo@abraji.org.br",
     "anacarolinamoreno@abraji.org.br",
     "sergioludtke@abraji.org.br",
     "leticiakleim@abraji.org.br",
 ]
-"""
 
+"""
 RECIPIENTS = [
     "reinaldo@abraji.org.br"
 ]
-
+"""
 
 # ---------------------------------------------------------------------------
 # Model: Gemini 3 Pro Preview or gemini-3-flash-preview
