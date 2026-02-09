@@ -87,7 +87,7 @@ FOOTER_TEMPLATE = """
 Gerado automaticamente via GitHub Actions · Powered by Google {model}
 Abraji — Associação Brasileira de Jornalismo Investigativo
 ⚠️ Este relatório usa IA e busca web automatizada. Sempre verifique os links e prazos nos sites oficiais.
-Script criado por Reinaldo Chaves (https://github.com/reichaves/grant-scanner)
+Script criado por Reinaldo Chaves (https://github.com/reichaves) (secret)
 """
 
 # ---------------------------------------------------------------------------
@@ -1118,7 +1118,7 @@ def build_email_html(report_md: str, result: dict) -> str:
     <em>Este relatório usa IA e busca web automatizada.
     Sempre verifique os links e prazos nos sites oficiais.</em><br><br>
     Script criado por Reinaldo Chaves
-    (<a href="https://github.com/reichaves/grant-scanner" style="color:#2980b9;">github.com/reichaves</a>)
+    (<a href="https://github.com/reichaves/" style="color:#2980b9;">github.com/reichaves</a>)
   </div>
 
 </body>
