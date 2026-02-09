@@ -39,20 +39,20 @@ logger = logging.getLogger(__name__)
 BRT = timezone(timedelta(hours=-3))
 
 SENDER_EMAIL = "reichaves@gmail.com"
-"""
+
 RECIPIENTS = [
     "reinaldo@abraji.org.br",
     "anacarolinamoreno@abraji.org.br",
     "sergioludtke@abraji.org.br",
     "leticiakleim@abraji.org.br",
 ]
+
+
 """
-
-
 RECIPIENTS = [
     "reinaldo@abraji.org.br"
 ]
-
+"""
 # ---------------------------------------------------------------------------
 # Model Configuration
 # ---------------------------------------------------------------------------
@@ -253,7 +253,7 @@ As 3 recomendações devem considerar que a Abraji:
 - Tem 20+ anos de história e é referência regional em jornalismo investigativo
 - Tem o projeto Comprova de combate a desinformação
 - Tem um programa de proteção legal, digital e física para jornalistas e de combate ao assédio judicial
-- Desenvolve ferramentas de dados (CruzaGrafos com 89M+ registros, Attack Detector)
+- Desenvolve ferramentas de dados (CruzaGrafos com 89M+ registros, Monitor de Assédio Judicial Contra Jornalistas)
 - Organiza o maior congresso de jornalismo investigativo do Brasil (1.500+ participantes)
 - Tem parcerias internacionais ativas (GIJN, Pulitzer Center, Google News Initiative)
 - Trabalha com IA aplicada ao jornalismo e treinamento de redações
