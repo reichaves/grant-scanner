@@ -103,7 +103,7 @@ PARÂMETROS DE BUSCA:
    a) Fundações globais: Open Society, Luminate, Ford Foundation, MacArthur, Knight Foundation, Bloomberg, Hewlett Foundation, Oak Foundation
    b) Agências de cooperação: USAID, EuropeAid, Norad, GIZ, SIDA, AFD, DFAT, IDRC (Canadá)
    c) Organizações de jornalismo: Pulitzer Center, GIJN, Google News Initiative, Internews, Free Press Unlimited, DW Akademie, RSF, NED, IJ4EU, Journalism Science Alliance, Solutions Journalism Network, ICFJ
-   d) Fundos temáticos: Global Forest Watch, Climate & Land Use Alliance, ClimateWorks, Skoll Foundation, Omidyar Network
+   d) Fundos temáticos: Democracy x AI Cohort Mozilla Foundation, Global Forest Watch, Climate & Land Use Alliance, ClimateWorks, Skoll Foundation, Omidyar Network
    e) Organizações brasileiras/regionais: Fundo Brasil de Direitos Humanos, Fundação Tide Setubal, Instituto Serrapilheira, Fundação Lemann, Embaixada dos EUA no Brasil, Instituto Igarapé, Fundação Itaú, Fundação Roberto Marinho
 
 2. Busque por termos-chave em inglês, espanhol e português:
