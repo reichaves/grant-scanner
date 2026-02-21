@@ -56,7 +56,7 @@ RECIPIENTS = [
 # ---------------------------------------------------------------------------
 # Model Configuration
 # ---------------------------------------------------------------------------
-GEMINI_MODEL = "gemini-3-pro-preview"
+GEMINI_MODEL = "gemini-3.1-pro-preview"
 PREVIOUS_REPORT_PATH = "previous_grant_report.json"
 
 # ---------------------------------------------------------------------------
