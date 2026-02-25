@@ -101,7 +101,7 @@ Sua tarefa é realizar uma varredura profunda na web para identificar oportunida
 PARÂMETROS DE BUSCA:
 1. Priorize oportunidades de:
    a) Fundações globais: Open Society, Luminate, Ford Foundation, MacArthur, Knight Foundation, Bloomberg, Hewlett Foundation, Oak Foundation
-   b) Agências de cooperação: USAID, EuropeAid, Norad, GIZ, SIDA, AFD, DFAT, IDRC (Canadá)
+   b) Agências de cooperação: União Europeia, EU-LAC Social Acclerator, EU-LAC Programmes, Prêmio de Direitos Humanos da UE 2026, Journalism Partnerships – Creative Europe 2026 (Collaborations + Pluralism), Horizon Europe Cluster 2 – Democracia & Governança 2026, EURAXESS LAC, NDICI – Global Europe, Erasmus+ Capacity Building in Higher Education, USAID, EuropeAid, Norad, GIZ, SIDA, AFD, DFAT, IDRC (Canadá)
    c) Organizações de jornalismo: Pulitzer Center, GIJN, Google News Initiative, Internews, Free Press Unlimited, DW Akademie, RSF, NED, IJ4EU, Journalism Science Alliance, Solutions Journalism Network, ICFJ
    d) Fundos temáticos: Democracy x AI Cohort Mozilla Foundation, Global Forest Watch, Climate & Land Use Alliance, ClimateWorks, Skoll Foundation, Omidyar Network
    e) Organizações brasileiras/regionais: Fundo Brasil de Direitos Humanos, Fundação Tide Setubal, Instituto Serrapilheira, Fundação Lemann, Embaixada dos EUA no Brasil, Instituto Igarapé, Fundação Itaú, Fundação Roberto Marinho
