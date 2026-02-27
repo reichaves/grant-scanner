@@ -1,292 +1,186 @@
 # 📡 Grant Scanner — Abraji
 
-**Automated Grant Opportunity Monitor for Investigative Journalism and Media**
+**Monitor Automatizado de Oportunidades de Financiamento para Jornalismo Investigativo**
 
-An intelligent GitHub Actions workflow that automatically scans and reports funding opportunities for investigative journalism, media organizations, and related initiatives. Runs Monday through Friday at 9:00 AM BRT and delivers curated reports via email.
+Um workflow GitHub Actions que usa Google Gemini com busca na web para identificar, verificar e reportar diariamente grants, fellowships e editais para jornalismo investigativo. Executa automaticamente de segunda a sexta às **07:00 BRT** e entrega relatórios curados por e-mail.
 
----
-
-## 🎯 Overview
-
-Grant Scanner leverages Google's Gemini AI to continuously monitor and analyze funding opportunities across multiple categories relevant to investigative journalism. The system automatically:
-
-- 🔍 Searches for new grant opportunities daily
-- 🤖 Analyzes and categorizes findings using AI
-- 📧 Delivers formatted reports via email
-- 📊 Archives reports for future reference
-
-Built specifically for [Abraji](https://abraji.org.br/) (Brazilian Association of Investigative Journalism), but adaptable for any journalism organization or media initiative.
+Desenvolvido para a [Abraji](https://abraji.org.br/) (Associação Brasileira de Jornalismo Investigativo).
 
 ---
 
-## ✨ Features
+## Como funciona
 
-- **Automated Daily Scanning**: Runs Monday-Friday at 09:00 BRT (12:00 UTC)
-- **AI-Powered Analysis**: Uses Google Gemini to identify and categorize opportunities
-- **Comprehensive Coverage**: Monitors multiple funding categories:
-  - Investigative journalism
-  - Environmental journalism
-  - Data journalism and AI tools
-  - Press freedom and media development
-  - Fact-checking and misinformation
-  - Climate journalism and more
-- **Email Delivery**: Automated reports sent to configured recipients
-- **Report Archiving**: 90-day retention of all reports as GitHub artifacts
-- **Manual Trigger**: On-demand execution for testing or immediate updates
+O sistema realiza **três passagens** sequenciais com o modelo Gemini, com busca na web em tempo real:
 
----
+```
+Pass 1 (Varredura ampla)
+  → 12–20 oportunidades identificadas
 
-## 🚀 Quick Start
+Pass 2 (Busca complementar)
+  → Oportunidades adicionais não encontradas na Pass 1
+  → Foco em editais brasileiros, tech, fellowships, fundos climáticos
 
-### Prerequisites
+Pass 3 (Auditoria adversarial de elegibilidade)
+  → Age como auditor CÉTICO, tentando REFUTAR a elegibilidade
+  → Verifica a página oficial de cada oportunidade
+  → Remove oportunidades onde o Brasil confirmadamente não é elegível
 
-- GitHub repository with Actions enabled
-- Google Gemini API key ([get one here](https://makersuite.google.com/app/apikey))
-- Gmail account with App Password ([setup guide](https://support.google.com/accounts/answer/185833))
-
-### Installation
-
-1. **Clone or fork this repository**
-```bash
-git clone https://github.com/reichaves/grant-scanner.git
-cd grant-scanner
+→ Validação de links, classificação de urgência, formatação e envio por e-mail
 ```
 
-2. **Configure GitHub Secrets**
+### Fontes consultadas em cada sessão
 
-Go to your repository Settings → Secrets and Variables → Actions, and add:
+Além da busca livre na web, o sistema consulta **obrigatoriamente** a cada execução:
 
-- `GEMINI_API_KEY`: Your Google Gemini API key
-- `GMAIL_APP_PASSWORD`: Gmail App Password for sending emails
-
-3. **Customize the scanner** (optional)
-
-Edit `grant_scanner.py` to:
-- Change recipient email addresses
-- Modify search categories
-- Adjust report formatting
-- Update search parameters
-
-4. **Enable GitHub Actions**
-
-The workflow will automatically run Monday-Friday at 9 AM BRT. You can also trigger it manually from the Actions tab.
+- [Grants for Journalists](https://grantsforjournalists.com/) — base de dados curada de grants para jornalistas
+- [Planilha de oportunidades de financiamento](https://docs.google.com/spreadsheets/d/1vQs72vGfa2_LWBNMbVAr3WCeusTGrAIKSjkGtTR84Xo/edit?gid=380145027) — planilha colaborativa de oportunidades
 
 ---
 
-## 📋 How It Works
+## Funcionalidades
 
-### Workflow Schedule
+- **Execução automática** de segunda a sexta às 07:00 BRT
+- **Três passagens** de busca com `thinking_level="HIGH"` para maior profundidade
+- **Auditoria de elegibilidade**: cada oportunidade é verificada para confirmar se o Brasil pode aplicar
+- **Seções separadas no relatório**: oportunidades com elegibilidade confirmada vs. a verificar
+- **Classificação de urgência**: 🔴 urgente (<30 dias), 🟡 atenção (30–90 dias), 🟢 planejamento
+- **Validação de links**: URLs quebradas são sinalizadas automaticamente
+- **Relatório por e-mail** em HTML com banner de urgência para prazos próximos
+- **Artefatos**: `grant_report.md` e `grant_report.json` retidos por 90 dias no GitHub Actions
+- **Trigger manual** disponível pela aba Actions
+
+---
+
+## Configuração
+
+### Pré-requisitos
+
+- Repositório GitHub com Actions habilitado
+- Chave da API do Google Gemini ([obter aqui](https://aistudio.google.com/app/apikey))
+- Conta Gmail com App Password ([guia de configuração](https://support.google.com/accounts/answer/185833)) — requer 2FA ativado
+
+### Segredos do repositório
+
+Em **Settings → Secrets and Variables → Actions**, adicione:
+
+| Segredo | Descrição |
+|---------|-----------|
+| `GEMINI_API_KEY` | Chave da API Google Gemini |
+| `GMAIL_APP_PASSWORD` | App Password do Gmail (não é a senha da conta) |
+
+### Execução local
+
+```bash
+pip install -r requirements.txt
+GEMINI_API_KEY=<chave> GMAIL_APP_PASSWORD=<app_password> python grant_scanner.py
+```
+
+A execução local envia e-mail para a lista `RECIPIENTS` e salva `grant_report.md`, `grant_report.json` e `previous_grant_report.json` no diretório corrente.
+
+---
+
+## Configuração principal (`grant_scanner.py`)
+
+| Variável | Descrição |
+|----------|-----------|
+| `GEMINI_MODEL` | Modelo Gemini usado (atualmente `gemini-3-pro-preview`) |
+| `RECIPIENTS` | Lista de e-mails que recebem o relatório |
+| `SENDER_EMAIL` | Conta Gmail usada para envio SMTP |
+| `PREVIOUS_REPORT_PATH` | Arquivo JSON que persiste os dados da última execução |
+| `HEADER_TEMPLATE` / `FOOTER_TEMPLATE` | Seções estáticas do relatório (não geradas pela IA) |
+
+---
+
+## Elegibilidade — como funciona
+
+Cada oportunidade carrega dois campos de elegibilidade:
+
+| Campo | Valores |
+|-------|---------|
+| `brazil_eligible` | `true` / `false` / `null` |
+| `eligibility_confidence` | `"confirmed"` \| `"likely"` \| `"partial"` \| `"unverified"` |
+
+O relatório final divide as oportunidades em duas seções:
+
+- **✅ Elegibilidade confirmada** — `confirmed` ou `likely` com `brazil_eligible=true`
+- **⚠️ A verificar** — `unverified`, `partial` ou `brazil_eligible=null`
+- **Removidas silenciosamente** — `brazil_eligible=false` (inelegíveis confirmadas)
+
+---
+
+## Fluxo de dados
+
+```
+Gemini API (Pass 1 + Pass 2)
+  → validate_opportunity()
+  → deduplicate_opportunities()
+  → filter expired deadlines
+  → Gemini API (Pass 3 — audit)
+  → apply_audit_results()
+  → validate_links()
+  → classify_urgency()
+  → sort_opportunities()
+  → filter_by_eligibility()
+  → format_report_markdown()
+  → build_email_html()
+  → send_email()
+  → save artifacts (grant_report.md, grant_report.json)
+```
+
+---
+
+## Schedule do workflow
+
 ```yaml
 schedule:
-  # 09:00 BRT = 12:00 UTC
-  # Runs Monday through Friday only
-  - cron: "0 12 * * 1-5"
-```
-
-### Execution Flow
-
-1. **Setup** (Steps 1-3)
-   - Checkout repository
-   - Install Python 3.12
-   - Install dependencies
-
-2. **Scanning** (Step 4)
-   - Load environment variables
-   - Execute grant scanner
-   - Generate markdown report
-
-3. **Delivery & Archiving** (Step 5)
-   - Send email report
-   - Upload report artifact
-   - Retain for 90 days
-
----
-
-## 🛠️ Configuration
-
-### Email Settings
-
-Edit the following variables in `grant_scanner.py`:
-```python
-SENDER_EMAIL = "your-email@gmail.com"
-SENDER_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
-RECIPIENT_EMAIL = "recipient@example.com"
-```
-
-### Search Categories
-
-Modify the `CATEGORIES` list to focus on specific areas:
-```python
-CATEGORIES = [
-    "investigative journalism grants",
-    "environmental journalism funding",
-    "data journalism and AI tools",
-    # Add or remove categories as needed
-]
-```
-
-### AI Model Configuration
-
-Adjust Gemini parameters in `grant_scanner.py`:
-```python
-model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash-exp",
-    generation_config={
-        "temperature": 0.7,
-        "top_p": 0.95,
-        # Modify as needed
-    }
-)
+  # 07:00 BRT = 10:00 UTC (BRT = UTC-3)
+  - cron: "0 10 * * 1-5"   # Segunda a sexta
 ```
 
 ---
 
-## 📊 Report Format
+## Troubleshooting
 
-Reports are generated in Markdown format and include:
+**Workflow não executa**
+- Verifique se o Actions está habilitado no repositório
+- Confirme que os segredos `GEMINI_API_KEY` e `GMAIL_APP_PASSWORD` estão configurados
+- Revise os logs na aba Actions
 
-- **Header**: Date and report metadata
-- **Executive Summary**: Key findings and highlights
-- **Categorized Opportunities**: Organized by funding type
-  - Grant name and organization
-  - Application deadline
-  - Funding amount
-  - Eligibility requirements
-  - Application link
-- **Footer**: Disclaimer and contact information
+**E-mail não chega**
+- Verifique se o `GMAIL_APP_PASSWORD` é um App Password (não a senha da conta)
+- Confirme que o 2FA está ativado na conta Gmail remetente
+- Cheque se o `SENDER_EMAIL` no código corresponde à conta Gmail
 
-Example report structure:
-```markdown
-# 📡 Relatório de Oportunidades de Financiamento
-**Data**: 2026-02-06
+**Erros de API Gemini**
+- Confirme que a chave `GEMINI_API_KEY` é válida
+- Verifique se o modelo `gemini-3-pro-preview` está disponível na sua conta
+- Revise os logs para mensagens de erro específicas
 
-## 🎯 Resumo Executivo
-[AI-generated summary]
-
-## 📚 Oportunidades por Categoria
-
-### Jornalismo Investigativo
-- **Grant Name** | Organization
-  - Deadline: [date]
-  - Amount: [funding range]
-  - [Link]
-
-[...]
-```
+**Poucas oportunidades encontradas**
+- A auditoria de elegibilidade pode ter removido muitas oportunidades — veja nos logs quantas foram descartadas
+- Considere ajustar os prompts para focar em regiões ou temas específicos
 
 ---
 
-## 🔒 Security Considerations
+## Segurança
 
-- **Never commit API keys** to the repository
-- Use GitHub Secrets for all sensitive credentials
-- Rotate Gmail App Passwords periodically
-- Review and limit repository access permissions
-- Monitor workflow execution logs for anomalies
-
----
-
-## 🐛 Troubleshooting
-
-### Workflow Not Running
-
-- Check if Actions are enabled in repository settings
-- Verify cron schedule matches your timezone expectations
-- Review workflow execution logs in Actions tab
-
-### Email Not Sending
-
-- Verify `GMAIL_APP_PASSWORD` secret is correctly set
-- Ensure 2-factor authentication is enabled on Gmail
-- Check sender email is correct in code
-- Review SMTP connection logs
-
-### API Errors
-
-- Confirm `GEMINI_API_KEY` is valid and active
-- Check API quota limits
-- Review error messages in workflow logs
-
-### No Opportunities Found
-
-- AI may not have found relevant results that day
-- Try adjusting search categories or parameters
-- Run manual trigger to test immediately
+- Nunca commite chaves de API no repositório
+- Use exclusivamente o GitHub Secrets para credenciais
+- Rotacione periodicamente o App Password do Gmail
+- Monitore os logs de execução para anomalias
 
 ---
 
-## 📈 Usage Examples
+## Licença
 
-### Manual Trigger
-
-1. Go to Actions tab in GitHub
-2. Select "📡 Grant Scanner — Abraji"
-3. Click "Run workflow"
-4. Check email and artifacts
-
-### View Past Reports
-
-1. Go to Actions tab
-2. Select a completed workflow run
-3. Download artifact: `grant-report-{run_number}`
-
-### Customize Search
-```python
-# Example: Focus on climate journalism
-CATEGORIES = [
-    "climate journalism grants 2026",
-    "environmental reporting funding",
-    "COP30 media grants"
-]
-```
+MIT License — consulte o arquivo [LICENSE](LICENSE).
 
 ---
 
-## 🤝 Contributing
+## Créditos
 
-Contributions are welcome! Please:
+- **Abraji** — Associação Brasileira de Jornalismo Investigativo
+- **Google Gemini** — modelo de IA com busca na web em tempo real
+- **GitHub Actions** — automação do workflow
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/improvement`)
-3. Commit changes (`git commit -am 'Add new feature'`)
-4. Push to branch (`git push origin feature/improvement`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
-## 🙏 Acknowledgments
-
-- **Abraji** - Brazilian Association of Investigative Journalism
-- **Google Gemini** - AI-powered grant analysis
-- **GitHub Actions** - Workflow automation
-
----
-
-## 📞 Contact
-
-**Project Maintainer**: Reinaldo Chaves  
-**Organization**: [Abraji](https://abraji.org.br/)  
-**Repository**: [github.com/reichaves/grant-scanner](https://github.com/reichaves/grant-scanner)
-
-For questions or suggestions, please [open an issue](https://github.com/reichaves/grant-scanner/issues).
-
----
-
-## 🗓️ Roadmap
-
-- [ ] Add support for multiple languages
-- [ ] Integrate with Slack notifications
-- [ ] Implement grant deadline reminders
-- [ ] Add historical trending analysis
-- [ ] Create web dashboard for reports
-- [ ] Support for custom RSS feeds
-
----
-
-**Made with ❤️ for investigative journalism**
+**Desenvolvido por** Reinaldo Chaves ([@reichaves](https://github.com/reichaves))
