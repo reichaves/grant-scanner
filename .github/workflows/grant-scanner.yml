@@ -23,7 +23,7 @@ concurrency:
 jobs:
   scan-grants:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Safety timeout
+    timeout-minutes: 30        # 3 passes com thinking=HIGH + gemini-3-pro-preview podem levar ~25min
 
     steps:
       - name: "📥 Checkout repository"
@@ -35,7 +35,7 @@ jobs:
           python-version: "3.12"
 
       - name: "📦 Install dependencies"
-        run: pip install "google-genai>=1.0.0"
+        run: pip install "google-genai>=1.0.0" requests
 
       - name: "🔍 Run Grant Scanner"
         env:
@@ -43,10 +43,12 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python grant_scanner.py
 
-      - name: "📎 Upload report as artifact"
+      - name: "📎 Upload reports as artifacts"
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: "grant-report-${{ github.run_number }}"
-          path: grant_report.md
+          path: |
+            grant_report.md
+            grant_report.json
           retention-days: 90
