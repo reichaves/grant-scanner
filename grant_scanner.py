@@ -39,20 +39,20 @@ logger = logging.getLogger(__name__)
 BRT = timezone(timedelta(hours=-3))
 
 SENDER_EMAIL = "reichaves@gmail.com"
-
+"""
 RECIPIENTS = [
     "reinaldo@abraji.org.br",
     "anacarolinamoreno@abraji.org.br",
     "sergioludtke@abraji.org.br",
     "leticiakleim@abraji.org.br",
 ]
-
-
 """
+
+
 RECIPIENTS = [
     "reinaldo@abraji.org.br"
 ]
-"""
+
 # ---------------------------------------------------------------------------
 # Model Configuration
 # ---------------------------------------------------------------------------
@@ -413,8 +413,55 @@ def get_env_var(name: str) -> str:
 # JSON Parsing & Validation
 # ---------------------------------------------------------------------------
 
+def _recover_truncated_json(text: str) -> Optional[dict]:
+    """
+    Attempt to recover a truncated JSON string by closing unclosed structures.
+
+    Handles the common case where the LLM response was cut off mid-JSON due to
+    max_output_tokens being reached.
+    """
+    stack = []
+    in_string = False
+    escape_next = False
+
+    for char in text:
+        if escape_next:
+            escape_next = False
+            continue
+        if char == '\\' and in_string:
+            escape_next = True
+            continue
+        if char == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if char in '{[':
+            stack.append(char)
+        elif char in '}]':
+            if stack:
+                stack.pop()
+
+    if not stack:
+        return None  # No unclosed structures; truncation recovery not applicable
+
+    # Close any open string, then close structures in reverse order
+    closing = ('"' if in_string else '') + ''.join(
+        '}' if c == '{' else ']' for c in reversed(stack)
+    )
+    try:
+        recovered = json.loads(text + closing)
+        logger.warning(
+            f"Truncated JSON recovered: closed {len(stack)} unclosed structure(s). "
+            f"Original length: {len(text)} chars."
+        )
+        return recovered
+    except json.JSONDecodeError:
+        return None
+
+
 def extract_json_from_response(text: str) -> Optional[dict]:
-    """Extract and parse JSON from LLM response, handling markdown fences."""
+    """Extract and parse JSON from LLM response, handling markdown fences and truncation."""
     text = text.strip()
 
     if text.startswith("```"):
@@ -429,12 +476,24 @@ def extract_json_from_response(text: str) -> Optional[dict]:
 
     match = re.search(r'\{[\s\S]*\}', text)
     if match:
+        candidate = match.group()
         try:
-            return json.loads(match.group())
+            return json.loads(candidate)
         except json.JSONDecodeError:
-            pass
+            # Try truncation recovery on the extracted block
+            recovered = _recover_truncated_json(candidate)
+            if recovered:
+                return recovered
 
-    logger.warning("Could not parse JSON from response. Falling back to raw text.")
+    # Last attempt: recovery on the full text
+    recovered = _recover_truncated_json(text)
+    if recovered:
+        return recovered
+
+    logger.warning(
+        f"Could not parse JSON from response "
+        f"(length: {len(text)} chars, tail: ...{text[-120:]!r})"
+    )
     return None
 
 
@@ -735,7 +794,7 @@ def run_grant_search(api_key: str) -> dict:
         system_instruction=SYSTEM_PROMPT.format(today=today),
         tools=[google_search_tool],
         temperature=0.1,
-        max_output_tokens=16000,
+        max_output_tokens=65536,
         thinking_config=types.ThinkingConfig(
             thinking_level="HIGH"
         ),
@@ -767,8 +826,10 @@ def run_grant_search(api_key: str) -> dict:
             if "strategic_recommendations" in data:
                 all_recommendations = data["strategic_recommendations"]
         else:
-            logger.warning("Pass 1: Could not parse structured data. Using raw text.")
-            return {"raw_text": response.text, "parse_failed": True}
+            logger.warning(
+                "Pass 1: Could not parse structured data. "
+                "Continuing to Pass 2 (Pass 1 results will be empty)."
+            )
 
     except Exception as e:
         logger.error(f"Gemini API error (Pass 1): {e}")
@@ -842,7 +903,7 @@ def run_grant_search(api_key: str) -> dict:
     audit_config = types.GenerateContentConfig(
         tools=[google_search_tool],
         temperature=0.0,  # Maximum factuality for audit
-        max_output_tokens=12000,
+        max_output_tokens=32768,
         thinking_config=types.ThinkingConfig(
             thinking_level="HIGH"
         ),
