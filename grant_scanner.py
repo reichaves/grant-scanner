@@ -39,20 +39,20 @@ logger = logging.getLogger(__name__)
 BRT = timezone(timedelta(hours=-3))
 
 SENDER_EMAIL = "reichaves@gmail.com"
-"""
+
 RECIPIENTS = [
     "reinaldo@abraji.org.br",
     "anacarolinamoreno@abraji.org.br",
     "sergioludtke@abraji.org.br",
     "leticiakleim@abraji.org.br",
 ]
+
+
 """
-
-
 RECIPIENTS = [
     "reinaldo@abraji.org.br"
 ]
-
+"""
 # ---------------------------------------------------------------------------
 # Model Configuration
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ FOOTER_TEMPLATE = """
 Gerado automaticamente via GitHub Actions · Powered by Google {model}
 Abraji — Associação Brasileira de Jornalismo Investigativo
 ⚠️ Este relatório usa IA e busca web automatizada. Sempre verifique os links e prazos nos sites oficiais.
-Script criado por Reinaldo Chaves (https://github.com/reichaves) (secret)
+Script criado por Reinaldo Chaves (https://github.com/reichaves)
 """
 
 # ---------------------------------------------------------------------------
@@ -172,11 +172,18 @@ PASSO 3 — VERIFICAR ELEGIBILIDADE PARA O BRASIL:
    e) É um edital brasileiro (organização brasileira, em português)
 
 PASSO 4 — CLASSIFICAR A CONFIANÇA:
-   - "confirmed": Verificou a página oficial E Brasil/LatAm está explicitamente elegível
+   - "confirmed": Verificou a página oficial E Brasil/LatAm está explicitamente elegível E pode LIDERAR ou aplicar diretamente
    - "likely": A chamada parece global mas não lista países explicitamente
-   - "partial": Brasil elegível apenas como PARCEIRO (não líder), ex: IJ4EU
+   - "partial": Brasil elegível APENAS como parceiro/membro de equipe (não pode liderar nem aplicar como org. principal)
    - "unverified": Não conseguiu acessar a página de elegibilidade ou não encontrou informação clara
    - "ineligible": Confirmou que Brasil NÃO é elegível (NÃO INCLUA no resultado)
+
+EXEMPLOS DE "partial" — USE ESTA CLASSIFICAÇÃO QUANDO:
+   - IJ4EU: "The lead applicant must be based in a Creative Europe country" → "partial"
+   - Journalismfund European grants: "at least two journalists from two different EU countries" → "partial"
+   - Journalism Science Alliance: "The project leader must be in a Creative Europe country" → "partial"
+   - Qualquer edital onde o LÍDER ou APLICANTE PRINCIPAL deve ser europeu/americano/de outra região
+   ⚠️ ATENÇÃO: Grants "partner-only" são frequentemente marcados como "confirmed" por engano. Use "partial".
 
 REGRA DE OURO: Na dúvida, marque como "unverified". NUNCA marque "confirmed"
 sem ter verificado a página oficial. É melhor ter um falso "unverified" do
@@ -242,6 +249,9 @@ REGRAS DO JSON:
 - "themes": lista de tags temáticas em inglês (para filtragem)
 - "amount_usd_min" e "amount_usd_max": valores numéricos em USD. Use 0 se não divulgado.
 - "url": DEVE ser a URL direta da página de aplicação, NÃO a home page genérica.
+  ⚠️ NUNCA construa URLs de memória ou por suposição de padrão (ex: /apply, /grants/2026).
+  Acesse a página real via busca e copie a URL exata. Se não conseguir verificar, use a URL
+  da home page do financiador e marque eligibility_confidence como "unverified".
 - "eligibility_confidence": OBRIGATÓRIO — "confirmed", "likely", "partial", ou "unverified"
 - "eligibility_source": URL onde verificou a elegibilidade (pode ser a mesma do grant)
 - "eligible_regions": Lista de regiões/países elegíveis conforme a fonte oficial
@@ -362,11 +372,31 @@ Retorne um JSON com o resultado da auditoria:
 }}
 ```
 
-REGRAS:
-- Se NÃO conseguir encontrar a página de elegibilidade, marque eligibility_confidence como "unverified"
-- Se encontrar evidência de que o Brasil NÃO é elegível, marque brazil_eligible como false
-- Se confirmar elegibilidade, marque brazil_eligible como true e eligibility_confidence como "confirmed"
-- Inclua a URL ou descrição da fonte em audit_notes
+REGRAS CRÍTICAS — LEIA COM ATENÇÃO:
+
+1. Se NÃO conseguir encontrar a página de elegibilidade → eligibility_confidence: "unverified"
+2. Se o Brasil NÃO é elegível → brazil_eligible: false, eligibility_confidence: "confirmed"
+3. Se o Brasil é elegível plenamente (pode LIDERAR e aplicar diretamente) → brazil_eligible: true, eligibility_confidence: "confirmed"
+4. Inclua a URL ou descrição da fonte em audit_notes
+
+REGRA ESPECIAL — ELEGIBILIDADE PARCIAL (partner-only):
+Se o Brasil só pode participar como MEMBRO DE EQUIPE ou PARCEIRO secundário
+(não pode liderar nem aplicar como organização principal), marque:
+  → brazil_eligible: true
+  → eligibility_confidence: "partial"
+  → disqualification_reason: "Brasil elegível apenas como parceiro/membro de equipe, não como aplicante líder"
+
+EXEMPLOS DE ELEGIBILIDADE PARCIAL (use "partial"):
+- IJ4EU: "The lead applicant must be based in a Creative Europe country" — Brasil pode ser membro, não líder → "partial"
+- Journalismfund European grants: "At least two journalists from two different European countries" — Brasil pode co-participar → "partial"
+- Journalism Science Alliance: "The project leader must be in a Creative Europe country" → "partial"
+- Qualquer grant onde o edital exige que o LÍDER ou APLICANTE PRINCIPAL seja europeu/americano/etc
+
+NÃO CONFUNDA:
+- "Global" ou "open to all countries" sem restrição de liderança → "confirmed"
+- "Partner from any country welcome" com liderança restrita a outra região → "partial"
+- "Exclusive for [Asia/Africa/etc]" → brazil_eligible: false
+
 - Retorne APENAS o JSON"""
 
 
@@ -620,9 +650,22 @@ def apply_audit_results(opps: list[dict], audit_results: list[dict]) -> list[dic
                     f"{ar.get('disqualification_reason', 'no reason')}"
                 )
 
-            # Audit confirms eligibility → upgrade confidence
+            # Audit confirms eligibility → upgrade or downgrade confidence
             elif ar.get("brazil_eligible") is True:
-                if ar.get("eligibility_confidence") == "confirmed":
+                audit_conf = ar.get("eligibility_confidence")
+
+                if audit_conf == "partial":
+                    # Audit found partner-only restriction: downgrade to partial
+                    opp["eligibility_confidence"] = "partial"
+                    opp["brazil_eligible"] = True
+                    if ar.get("audit_notes"):
+                        opp["eligibility_source"] = ar.get("audit_notes", "")
+                    logger.info(
+                        f"Audit downgrade: '{opp.get('name')}' → 'partial' "
+                        f"(partner-only grant)"
+                    )
+
+                elif audit_conf == "confirmed":
                     opp["eligibility_confidence"] = "confirmed"
                     opp["brazil_eligible"] = True
                     if ar.get("audit_notes"):
@@ -704,6 +747,8 @@ def run_grant_search(api_key: str) -> dict:
 
     all_opportunities = []
     all_recommendations = []
+    pass1_raw_count = 0
+    pass2_raw_count = 0
 
     try:
         response = client.models.generate_content(
@@ -717,7 +762,8 @@ def run_grant_search(api_key: str) -> dict:
 
         if data and "opportunities" in data:
             all_opportunities.extend(data["opportunities"])
-            logger.info(f"Pass 1 found {len(data['opportunities'])} opportunities")
+            pass1_raw_count = len(data["opportunities"])
+            logger.info(f"Pass 1 found {pass1_raw_count} opportunities")
             if "strategic_recommendations" in data:
                 all_recommendations = data["strategic_recommendations"]
         else:
@@ -751,12 +797,16 @@ def run_grant_search(api_key: str) -> dict:
         data2 = extract_json_from_response(response2.text)
 
         if data2 and "opportunities" in data2:
+            pass2_raw_count = len(data2["opportunities"])
             all_opportunities.extend(data2["opportunities"])
-            logger.info(f"Pass 2 found {len(data2['opportunities'])} additional opportunities")
+            logger.info(f"Pass 2 found {pass2_raw_count} additional opportunities")
             if "strategic_recommendations" in data2 and not all_recommendations:
                 all_recommendations = data2["strategic_recommendations"]
+        else:
+            pass2_raw_count = 0
 
     except Exception as e:
+        pass2_raw_count = 0
         logger.warning(f"Pass 2 failed (non-fatal): {e}")
 
     # --- Post-processing before audit ---
@@ -851,7 +901,9 @@ def run_grant_search(api_key: str) -> dict:
         "generated_at": today_dt.isoformat(),
         "model": GEMINI_MODEL,
         "stats": {
-            "pass1_count": len(all_opportunities),  # Before filtering
+            "pass1_raw_count": pass1_raw_count,
+            "pass2_raw_count": pass2_raw_count,
+            "pre_eligibility_count": len(all_opportunities),  # After dedup/expiry, before eligibility split
             "confirmed_count": len(confirmed),
             "unverified_count": len(unverified),
             "removed_count": len(all_opportunities) - len(confirmed) - len(unverified),
@@ -1088,15 +1140,13 @@ def build_email_html(report_md: str, result: dict) -> str:
     stats = result.get("stats", {})
     removed = stats.get("removed_count", 0)
 
-    eligibility_note = ""
-    if removed > 0 or len(unverified) > 0:
-        eligibility_note = f"""
+    eligibility_note = f"""
         <div style="background:#e8f4f8;border-left:4px solid #17a2b8;padding:12px 16px;margin-bottom:20px;border-radius:4px;">
-            <strong>🔍 Verificação de elegibilidade (novidade v3):</strong><br>
+            <strong>🔍 Verificação de elegibilidade:</strong><br>
             ✅ {len(confirmed)} oportunidades com elegibilidade confirmada para o Brasil<br>
-            ⚠️ {len(unverified)} oportunidades com elegibilidade a verificar manualmente<br>
+            {"⚠️ " + str(len(unverified)) + " oportunidades com elegibilidade a verificar manualmente<br>" if unverified else ""}
             {"❌ " + str(removed) + " oportunidades removidas (Brasil não elegível)<br>" if removed > 0 else ""}
-            <em style="font-size:12px;">O sistema agora audita a elegibilidade geográfica de cada oportunidade
+            <em style="font-size:12px;">O sistema audita a elegibilidade geográfica de cada oportunidade
             para evitar falsos positivos.</em>
         </div>
         """
@@ -1125,14 +1175,6 @@ def build_email_html(report_md: str, result: dict) -> str:
     {report_html}
   </div>
 
-  <div style="text-align:center;padding:16px;font-size:12px;color:#888;margin-top:12px;">
-    Gerado automaticamente via GitHub Actions · Powered by Google {GEMINI_MODEL}<br>
-    Abraji — Associação Brasileira de Jornalismo Investigativo<br>
-    <em>Este relatório usa IA e busca web automatizada.
-    Sempre verifique os links e prazos nos sites oficiais.</em><br><br>
-    Script criado por Reinaldo Chaves
-    (<a href="https://github.com/reichaves/" style="color:#2980b9;">github.com/reichaves</a>)
-  </div>
 
 </body>
 </html>"""
