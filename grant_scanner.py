@@ -135,7 +135,12 @@ PARÂMETROS DE BUSCA:
    - "Grants journalism"
    - "Edital jornalismo"
 
-3. IGNORE oportunidades exclusivas para cidadãos dos EUA ou UE. Foque naquelas abertas a brasileiros, latino-americanos ou candidatos globais.
+3. FONTES OBRIGATÓRIAS — Consulte SEMPRE estas fontes em cada sessão de busca:
+   a) https://grantsforjournalists.com/ — base de dados curada de grants para jornalistas; navegue pelas categorias Latin America, Environmental, Data/Tech e Press Freedom.
+   b) https://docs.google.com/spreadsheets/d/1vQs72vGfa2_LWBNMbVAr3WCeusTGrAIKSjkGtTR84Xo/edit?gid=380145027 — planilha colaborativa de oportunidades para jornalismo; leia todas as linhas com prazo futuro.
+   Para cada oportunidade encontrada nessas fontes, aplique o mesmo protocolo de elegibilidade e formato JSON exigido.
+
+4. IGNORE oportunidades exclusivas para cidadãos dos EUA ou UE. Foque naquelas abertas a brasileiros, latino-americanos ou candidatos globais.
 
 ══════════════════════════════════════════════════════════════════
 PROTOCOLO DE VERIFICAÇÃO DE ELEGIBILIDADE (OBRIGATÓRIO)
@@ -275,6 +280,10 @@ Busque ativamente na web por grants, fellowships e editais para:
 Foco: América Latina, com elegibilidade para organizações e profissionais brasileiros.
 Idiomas de busca: EN, ES, PT.
 
+FONTES OBRIGATÓRIAS NESTA SESSÃO (consulte as duas antes de finalizar):
+• https://grantsforjournalists.com/ — procure por grants abertos relevantes para jornalismo investigativo, LatAm, dados e meio ambiente.
+• https://docs.google.com/spreadsheets/d/1vQs72vGfa2_LWBNMbVAr3WCeusTGrAIKSjkGtTR84Xo/edit?gid=380145027 — leia a planilha e extraia todas as oportunidades com prazo futuro.
+
 LEMBRETE CRÍTICO: Para cada oportunidade, execute o Protocolo de Verificação de
 Elegibilidade COMPLETO antes de incluí-la. Preencha eligibility_confidence,
 eligibility_source, eligible_regions e brazil_eligible para CADA item.
@@ -296,6 +305,10 @@ Foque especificamente em:
 4. Fellowships individuais para jornalistas
 5. Oportunidades TRANSFRONTEIRIÇAS (Europa-LatAm, Norte-Sul)
 6. Fundos climáticos e ambientais que aceitem projetos de mídia
+
+FONTES PRIORITÁRIAS PARA ESTA SEGUNDA PASSAGEM:
+• https://grantsforjournalists.com/ — caso não tenha verificado na 1ª passagem, acesse agora e extraia qualquer oportunidade não listada acima.
+• https://docs.google.com/spreadsheets/d/1vQs72vGfa2_LWBNMbVAr3WCeusTGrAIKSjkGtTR84Xo/edit?gid=380145027 — verifique se há linhas com oportunidades não incluídas na lista acima.
 
 LEMBRETE: Execute o Protocolo de Verificação de Elegibilidade para cada item.
 Retorne o JSON no mesmo formato, incluindo APENAS oportunidades NOVAS.
