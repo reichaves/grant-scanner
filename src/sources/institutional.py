@@ -367,4 +367,9 @@ INSTITUTIONAL_SOURCES: list[Source] = [
         "url": "https://craignewmarkphilanthropies.org/apply",
         "focus": "Journalism, press freedom, disinformation, cybersecurity for newsrooms",
     },
+    {
+        "name": "EU-LAC Social Accelerator (European Commission)",
+        "url": "https://international-partnerships.ec.europa.eu/policies/programming/projects/social-accelerator_en",
+        "focus": "Social innovation and civil society organizations in Latin America and the Caribbean",
+    },
 ]
