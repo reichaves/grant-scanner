@@ -362,4 +362,9 @@ INSTITUTIONAL_SOURCES: list[Source] = [
         "url": "https://worldpressinstitute.org/fellowships/",
         "focus": "US media landscape exploration for international journalists",
     },
+    {
+        "name": "Craig Newmark Philanthropies",
+        "url": "https://craignewmarkphilanthropies.org/apply",
+        "focus": "Journalism, press freedom, disinformation, cybersecurity for newsrooms",
+    },
 ]
