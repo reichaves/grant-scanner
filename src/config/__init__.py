@@ -15,19 +15,28 @@ BRT = timezone(timedelta(hours=-3))
 # ---------------------------------------------------------------------------
 # Gemini model
 # ---------------------------------------------------------------------------
-GEMINI_MODEL = "gemini-3-pro-preview"
+#GEMINI_MODEL = "gemini-3-pro-preview"
+GEMINI_MODEL = "gemini-3.1-pro-preview"
 
 # ---------------------------------------------------------------------------
 # Email
 # ---------------------------------------------------------------------------
 SENDER_EMAIL = "reichaves@gmail.com"
 
-RECIPIENTS: list[str] = [
+"""
+RECIPIENTS = [
     "reinaldo@abraji.org.br",
     "anacarolinamoreno@abraji.org.br",
     "sergioludtke@abraji.org.br",
     "leticiakleim@abraji.org.br",
 ]
+"""
+
+
+RECIPIENTS = [
+    "reinaldo@abraji.org.br"
+]
+
 
 # ---------------------------------------------------------------------------
 # Persistence
