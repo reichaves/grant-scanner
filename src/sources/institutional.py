@@ -369,7 +369,7 @@ INSTITUTIONAL_SOURCES: list[Source] = [
     },
     {
         "name": "EU-LAC Social Accelerator (European Commission)",
-        "url": "https://international-partnerships.ec.europa.eu/policies/programming/projects/social-accelerator_en",
+        "url": "https://eulacsocialaccelerator.cainco.org.bo/publico/convocatoria?codigo_referencia=1/2026",
         "focus": "Social innovation and civil society organizations in Latin America and the Caribbean",
     },
 ]
