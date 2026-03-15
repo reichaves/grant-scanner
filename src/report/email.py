@@ -141,6 +141,15 @@ def build_email_html(report_md: str, result: SearchResult) -> str:
         </div>
         """
 
+    dashboard_banner = """
+        <div style="background:#eaf4ea;border-left:4px solid #27ae60;padding:12px 16px;margin-bottom:20px;border-radius:4px;text-align:center;">
+            📊 Veja os dados de oportunidades agrupados no site
+            <a href="https://reichaves.github.io/grant-scanner/"
+               style="color:#1a7a3c;font-weight:bold;"
+               target="_blank">https://reichaves.github.io/grant-scanner/</a>
+        </div>
+        """
+
     return f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -160,6 +169,7 @@ def build_email_html(report_md: str, result: SearchResult) -> str:
   <div style="background:white;padding:28px 32px;border-radius:0 0 8px 8px;
               box-shadow:0 2px 12px rgba(0,0,0,0.08);">
 
+    {dashboard_banner}
     {eligibility_note}
     {urgent_section}
     {report_html}
