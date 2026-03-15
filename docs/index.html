@@ -209,11 +209,11 @@
     .result-count { font-size: 12px; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
 
     /* ── Table ── */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 65vh; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1060px; }
     thead {
       background: var(--bg-elevated);
-      position: sticky; top: 58px; z-index: 10;
+      position: sticky; top: 0; z-index: 10;
     }
     th {
       padding: 9px 14px; text-align: left;
@@ -507,6 +507,15 @@ function renderRows(opps) {
         ${themes.map(t => `<span class="badge b-elev" style="margin-top:2px">${esc(t)}</span>`).join('')}
       </td>
       <td class="td-found">${fmtDate(o.date_found)}</td>
+      <td style="white-space:nowrap;min-width:120px">
+        ${url
+          ? `<a href="${esc(url)}" target="_blank" rel="noopener"
+               style="color:var(--accent);font-size:12px;font-weight:600;">🔗 Abrir</a>
+             ${!toBool(o.link_valid)
+               ? `<br><span style="font-size:10px;color:var(--amber)">⚠️ verificar manualmente</span>`
+               : ''}`
+          : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -744,6 +753,7 @@ function buildPage(data) {
               <th data-sort="amount_display">Valor</th>
               <th>Tipo / Temas</th>
               <th data-sort="date_found">Encontrado em</th>
+              <th>Link</th>
             </tr>
           </thead>
           <tbody id="opps-tbody"></tbody>
