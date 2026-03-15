@@ -182,7 +182,24 @@ def fetch_all_from_sheets(
         logger.warning(f"Worksheet '{worksheet_name}' not found — returning empty list")
         return []
 
-    return ws.get_all_records()
+    all_values = ws.get_all_values()
+    if not all_values:
+        return []
+
+    # Use SHEET_HEADERS as keys if the first row looks like data (not a header)
+    first_row = all_values[0]
+    if first_row == SHEET_HEADERS:
+        header = first_row
+        data_rows = all_values[1:]
+    else:
+        header = SHEET_HEADERS
+        data_rows = all_values
+
+    return [
+        dict(zip(header, row))
+        for row in data_rows
+        if any(cell.strip() for cell in row)
+    ]
 
 
 __all__ = ["upload_to_sheets", "fetch_all_from_sheets", "SHEET_HEADERS"]
