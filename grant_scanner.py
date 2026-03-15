@@ -14,6 +14,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from src.config import BRT, GEMINI_MODEL, PREVIOUS_REPORT_PATH, RECIPIENTS, SENDER_EMAIL
 from src.pipeline import run_grant_search
@@ -83,12 +84,59 @@ def main() -> None:
     )
     logger.info(f"JSON report saved to {json_path}")
 
+    # Step 5: Upload to Google Sheets and refresh GitHub Pages data
+    _upload_to_sheets_and_export(all_opps, result)
+
     logger.info("=" * 60)
     logger.info(
         f"GRANT SCANNER v3 — Done: {len(confirmed)} confirmed, "
         f"{len(unverified)} unverified, {urgent_count} urgent"
     )
     logger.info("=" * 60)
+
+
+def _upload_to_sheets_and_export(
+    opportunities: list, result: dict
+) -> None:
+    """Upload today's opportunities to Google Sheets and write docs/data.json."""
+    sheets_id: Optional[str] = os.environ.get("GOOGLE_SHEET_ID")
+    sheets_creds: Optional[str] = os.environ.get("GOOGLE_SHEETS_CREDENTIALS")
+
+    if not sheets_id or not sheets_creds:
+        logger.info(
+            "Skipping Google Sheets upload "
+            "(GOOGLE_SHEET_ID or GOOGLE_SHEETS_CREDENTIALS not configured)"
+        )
+        return
+
+    try:
+        from src.sheets import fetch_all_from_sheets, upload_to_sheets
+
+        date_found = datetime.now(BRT).strftime("%Y-%m-%d")
+        added, skipped = upload_to_sheets(opportunities, sheets_id, date_found)
+        logger.info(f"Sheets: {added} added, {skipped} skipped")
+
+        # Fetch the full accumulated history and write docs/data.json
+        all_historical = fetch_all_from_sheets(sheets_id)
+        docs_path = Path("docs/data.json")
+        docs_path.parent.mkdir(exist_ok=True)
+        docs_path.write_text(
+            json.dumps(
+                {
+                    "generated_at": datetime.now(BRT).isoformat(),
+                    "opportunities": all_historical,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        logger.info(
+            f"Dashboard data saved to {docs_path} "
+            f"({len(all_historical)} total opportunities)"
+        )
+    except Exception as exc:
+        logger.error(f"Sheets upload failed: {exc}")
 
 
 if __name__ == "__main__":
