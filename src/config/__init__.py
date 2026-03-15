@@ -23,20 +23,20 @@ GEMINI_MODEL = "gemini-3.1-pro-preview"
 # ---------------------------------------------------------------------------
 SENDER_EMAIL = "reichaves@gmail.com"
 
-"""
+
 RECIPIENTS = [
     "reinaldo@abraji.org.br",
     "anacarolinamoreno@abraji.org.br",
     "sergioludtke@abraji.org.br",
     "leticiakleim@abraji.org.br",
 ]
+
+
 """
-
-
 RECIPIENTS = [
     "reinaldo@abraji.org.br"
 ]
-
+"""
 
 # ---------------------------------------------------------------------------
 # Persistence
